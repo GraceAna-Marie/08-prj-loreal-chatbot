@@ -2,7 +2,6 @@
 const chatForm = document.getElementById("chatForm");
 const userInput = document.getElementById("userInput");
 const chatWindow = document.getElementById("chatWindow");
-
 /* System Prompt */
 const systemPrompt = `
 You are the L'Oréal Beauty Assistant.
@@ -23,9 +22,11 @@ If someone asks something unrelated, politely respond:
 
 Keep your responses friendly, professional, and concise.
 `;
+
 // Set initial message
 chatWindow.innerHTML =
   '<div class="msg ai">👋 Hello! I\'m your L\'Oréal Beauty Assistant. Ask me about skincare, makeup, haircare, fragrances, or product recommendations!</div>';
+
 
   function addMessage(text, sender) {
   const message = document.createElement("div");
@@ -37,12 +38,47 @@ chatWindow.innerHTML =
 }
 
 /* Handle form submit */
-chatForm.addEventListener("submit", (e) => {
+/* Handle form submit */
+chatForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  // When using Cloudflare, you'll need to POST a `messages` array in the body,
-  // and handle the response using: data.choices[0].message.content
+  const message = userInput.value.trim();
 
-  // Show message
-  chatWindow.innerHTML = "Connect to the OpenAI API for a response!";
+  if (!message) return;
+
+  // Display the user's message
+  addMessage(message, "user");
+
+  // Clear the input field
+  userInput.value = "";
+
+  try {
+    const response = await fetch("https://08-prj-loreal-chatbot.grace5termure.workers.dev", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: message
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+
+    addMessage(data.choices[0].message.content, "ai");
+
+  } catch (error) {
+    console.error(error);
+    addMessage("Sorry, I couldn't connect to the L'Oréal assistant.", "ai");
+  }
 });

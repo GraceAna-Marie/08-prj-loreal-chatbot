@@ -25,10 +25,9 @@ Keep your responses friendly, professional, and concise.
 
 // Set initial message
 chatWindow.innerHTML =
-  '<div class="msg ai">👋 Hello! I\'m your L\'Oréal Beauty Assistant. Ask me about skincare, makeup, haircare, fragrances, or product recommendations!</div>';
+  "<div class=\"msg ai\">👋 Hello! I'm your L'Oréal Beauty Assistant. Ask me about skincare, makeup, haircare, fragrances, or product recommendations!</div>";
 
-
-  function addMessage(text, sender) {
+function addMessage(text, sender) {
   const message = document.createElement("div");
   message.classList.add("msg", sender);
   message.textContent = text;
@@ -53,30 +52,32 @@ chatForm.addEventListener("submit", async (e) => {
   userInput.value = "";
 
   try {
-    const response = await fetch("https://08-prj-loreal-chatbot.grace5termure.workers.dev", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+    const response = await fetch(
+      "https://loreal-api.grace5termure.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4.1-mini",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt,
+            },
+            {
+              role: "user",
+              content: message,
+            },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
-    });
+    );
 
     const data = await response.json();
 
     addMessage(data.choices[0].message.content, "ai");
-
   } catch (error) {
     console.error(error);
     addMessage("Sorry, I couldn't connect to the L'Oréal assistant.", "ai");
